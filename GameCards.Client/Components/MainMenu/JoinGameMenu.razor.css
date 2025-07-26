@@ -1,0 +1,84 @@
+.main-text {
+    font-size: 5rem;
+    margin-bottom: 3rem;
+}
+
+/* container layout: player list + info side by side */
+.general-container {
+    display: flex;
+    width: 100%;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+/* Player list styling */
+.players-container {
+    flex: 0 0 25%;
+    background: rgba(255,255,255,0.05);
+    padding: 1rem;
+    text-align: center;
+}
+
+/* Right-side info box */
+.join-game-info-container {
+    flex: 0 0 30%;
+    background: rgba(255,255,255,0.05);
+    padding: 1.5rem;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+/* Info rows inside the box */
+.lobby-info-item {
+    display: flex;
+    justify-content: space-between;
+    font-size: 1.3rem;
+    color: white;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.lobby-info-item:last-child {
+    border-bottom: none; /* no divider on last item */
+}
+
+.info-label {
+    font-weight: bold;
+}
+
+.info-value {
+    color: #ddd;
+}
+
+/* Leave button styled like CreateGame button */
+.leave-btn {
+    background: #a33; /* reddish tint */
+    border: 2px solid white;
+    color: white;
+    font-size: 1.3rem;
+    padding: 0.8rem 1.5rem;
+    cursor: pointer;
+    transition: background 0.2s ease;
+    width: fit-content;
+    margin-top: 1.5rem;
+}
+
+.leave-btn:hover {
+    background: white;
+    color: #a33;
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 768px) {
+    .general-container {
+        flex-direction: column; /* stack player list + info vertically */
+        align-items: center;
+    }
+
+    .players-container, .join-game-info-container {
+        width: 80%;
+    }
+}

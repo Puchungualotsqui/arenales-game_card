@@ -1,0 +1,56 @@
+###############################
+# IDE & User Settings
+###############################
+.idea/              # JetBrains Rider
+.vscode/            # VS Code settings
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+###############################
+# Build Outputs
+###############################
+bin/
+obj/
+Debug/
+Release/
+
+###############################
+# ASP.NET / Blazor
+###############################
+# Local config (contains secrets)
+GameCards.Server/appsettings.Development.json
+GameCards.Server/appsettings.json
+
+# User secrets (if you use dotnet user-secrets)
+**/secrets.json
+
+# Local database (if using SQLite)
+*.db
+*.db-shm
+*.db-wal
+
+###############################
+# Frontend dependencies
+###############################
+GameCards.Client/wwwroot/lib/   # Local libraries (if restored via npm)
+node_modules/                   # Just in case you add npm
+
+###############################
+# Logs & Temp files
+###############################
+*.log
+*.tmp
+*.bak
+
+###############################
+# Assets (if auto-generated)
+###############################
+/Assets/
+
+###############################
+# OS Specific
+###############################
+.DS_Store         # macOS
+Thumbs.db         # Windows

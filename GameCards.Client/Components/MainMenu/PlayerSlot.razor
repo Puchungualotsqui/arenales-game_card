@@ -1,0 +1,28 @@
+@using GameCards.Client.Extras
+@inject UserProfileService ProfileService
+
+<div class="player-slot">
+    <span class="player-name">@Name</span>
+    @if (PlayerId != MyPlayerId && IsOwner)
+    {
+        <button class="kick-btn" @onclick="() => OnKick.InvokeAsync(PlayerId)">✖</button>
+    }
+    
+</div>
+
+@code {
+    [Parameter] public string Name { get; set; } = string.Empty;
+    [Parameter] public string AvatarUrl { get; set; } = string.Empty;
+    [Parameter] public string PlayerId { get; set; } = string.Empty;
+    [Parameter] public EventCallback<string> OnKick { get; set; }
+    [Parameter] public bool IsOwner { get; set; } = false;
+    
+    private string? MyPlayerId { get; set; }
+    
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        MyPlayerId = ProfileService.CurrentProfile?.PlayerId.ToString();
+    }
+
+}

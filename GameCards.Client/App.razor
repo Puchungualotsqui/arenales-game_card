@@ -1,0 +1,84 @@
+﻿@using GameCards.Client.Extras
+@inject UserProfileService ProfileService
+@inject NavigationManager Nav
+@inject SignalRGameService GameService
+
+<Router AppAssembly="@typeof(App).Assembly">
+    <Found Context="routeData">
+        <RouteView RouteData="@routeData" DefaultLayout="@typeof(Main)" />
+        <FocusOnNavigate RouteData="@routeData" Selector="h1" />
+    </Found>
+    <NotFound>
+        <PageTitle>Not found</PageTitle>
+        <LayoutView Layout="@typeof(Main)">
+            <p role="alert">Sorry, there's nothing at this address.</p>
+        </LayoutView>
+    </NotFound>
+</Router>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        // ✅ Subscribe to all navigation changes
+        Nav.LocationChanged += async (sender, args) =>
+        {
+            await CheckIfShouldLeave(args.Location);
+        };
+
+        // ✅ Still keep your login/profile check
+        var currentUri = Nav.Uri.ToLower();
+
+        if (!currentUri.EndsWith("/login"))
+        {
+            var hasProfile = await ProfileService.TryLoadProfileAsync();
+
+            if (!hasProfile)
+            {
+                await ProfileService.SavePendingRedirectAsync(currentUri);
+                
+                Nav.NavigateTo("/login", forceLoad: true);
+            }
+            else
+            {
+                await ProfileService.RefreshProfileFromServerAsync();
+            }
+        }
+    }
+
+    private async Task CheckIfShouldLeave(string newLocation)
+    {
+        var currentProfile = ProfileService.CurrentProfile;
+
+        if (currentProfile?.CurrentGameId == null)
+            return; // Not in any game → nothing to do
+
+        var currentGameId = currentProfile.CurrentGameId.Value.ToString().ToLower();
+
+        // Extract last part of the URL (after last '/')
+        var lastSegment = newLocation.TrimEnd('/').Split('/').Last().ToLower();
+
+        Console.WriteLine($"🔍 Nav changed → new last segment: {lastSegment}");
+
+        // ✅ If last part IS the current GameId → still in same game → do nothing
+        if (lastSegment == currentGameId)
+        {
+            Console.WriteLine("✅ Still inside same lobby, no leave needed.");
+            return;
+        }
+
+        // ✅ If we're not inside a game route anymore → leave game
+        var myId = currentProfile.PlayerId.ToString();
+        Console.WriteLine($"🚪 Leaving game {currentGameId} because navigated to {lastSegment}");
+
+        try
+        {
+            await GameService.LeaveGame(currentProfile.CurrentGameId.Value, myId);
+            Console.WriteLine("✅ Left game on navigation change");
+            currentProfile.CurrentGameId = null;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ Failed to leave game on nav change: {ex.Message}");
+        }
+    }
+}

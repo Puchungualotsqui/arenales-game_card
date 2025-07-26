@@ -1,0 +1,41 @@
+@page "/"
+@using GameCards.Client.Extras
+@using GameCards.Client.Pages
+@layout Lobby
+@inject HttpClient Http
+@inject SignalRGameService GameService
+@inject UserProfileService ProfileService
+@inject NavigationManager Nav
+
+<div class="main-menu-container">
+    <h2 class="menu-title">Main Menu</h2>
+
+    <div class="main-menu-buttons">
+        <button class="menu-btn" @onclick="@CreateNewGame">
+            Create Game
+        </button>
+
+        <button class="menu-btn" @onclick="@(() => Nav.NavigateTo("/lobby/search"))">
+            Search Game
+        </button>
+
+        <button class="menu-btn" @onclick="@(() => Nav.NavigateTo("/lobby/join"))">
+            Join Game
+        </button>
+    </div>
+</div>
+
+@code {
+    private async Task CreateNewGame()
+    {
+        await ProfileService.CreateGuessUser();
+        var playerId = ProfileService.CurrentProfile!.PlayerId.ToString();
+
+        // ✅ Call SignalR, gets the FULL game info
+        var game = await GameService.CreateGame(playerId, false, 4);
+
+        // ✅ No race condition → backend already knows it
+        Nav.NavigateTo($"/lobby/create/{game.GameId}");
+    }
+
+}

@@ -1,0 +1,92 @@
+@using GameCards.Client.Extras
+@inject SignalRGameService GameService
+@inject UserProfileService ProfileService
+@inject NavigationManager Nav
+@inherits LayoutComponentBase
+
+
+<div class="main-screen-container">
+    <div class="background-container">
+        <img class="background-image" src="assets/Background.png" alt="background-image-arenals"/>
+    </div>
+    
+    @if (ProfileService.IsLoggedIn)
+    {
+        <div class="user-slot" @onclick="ToggleMenu">
+            <div class="main-info-wrapper">
+                <img src="@GetAvatar()" alt="user-avatar" class="user-avatar" onerror="this.onerror=null; this.src='assets/DefaultAvatar.png';" >
+                <span class="user-name">@ProfileService.CurrentProfile.DisplayName</span>
+            </div>
+            @if (_showMenu)
+            {
+                <div class="log-out-wrapper">
+                    @if (string.IsNullOrEmpty(ProfileService.CurrentProfile.Email))
+                    {
+                        <button class="profile-btn" @onclick="GoToLogin">Login</button>
+                    }
+                    else
+                    {
+                        <button class="profile-btn logout" @onclick="Logout">Log out</button>
+                    }
+                </div>
+            }
+        </div>
+        
+    }
+    
+    <div class="lobby-container">
+        <div class="logo-container">
+            <img src="assets/Logo.png" alt="arenales-logo" class="arenales-logo"/>
+        </div>
+        
+        <div class="options-container">
+            @Body
+        </div>
+        
+    </div>
+</div>
+
+
+
+@code {
+    private bool _showMenu;
+
+    private void ToggleMenu() => _showMenu = !_showMenu;
+
+    private string _joinCode = "";
+    private readonly string _playerId = Guid.NewGuid().ToString();
+    private readonly string _playerName = $"Player_{Guid.NewGuid().ToString()[..4]}";
+
+    private string GetAvatar()
+    {
+        return string.IsNullOrEmpty(ProfileService.CurrentProfile.AvatarUrl)
+            ? "assets/DefaultAvatar.png"
+            : ProfileService.CurrentProfile.AvatarUrl;
+    }
+
+    private void GoToLogin()
+    {
+        _showMenu = false;
+        Nav.NavigateTo("/login");
+    }
+
+    private async Task Logout()
+    {
+        _showMenu = false;
+        await ProfileService.LogoutAsync();
+        Nav.NavigateTo("/login", forceLoad: true);
+    }
+
+    private async Task JoinAnyPublicGame()
+    {
+        StateHasChanged();
+
+        var joinedGameId = await GameService.JoinAnyAvailableGame(_playerId, _playerName);
+
+        if (joinedGameId.HasValue)
+        {
+            Nav.NavigateTo($"/game/{joinedGameId}");
+        }
+    }
+
+}

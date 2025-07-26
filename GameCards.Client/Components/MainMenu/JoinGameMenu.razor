@@ -1,0 +1,202 @@
+@page "/lobby/join/{GameId:guid}"
+@using GameCards.Client.Extras
+@using GameCards.Client.Pages
+@using GameCards.Shared
+@inject HttpClient Http
+@inject NavigationManager Nav
+@inject UserProfileService ProfileService
+@inject SignalRGameService GameService
+
+@layout Lobby
+
+<div class="lobby-container">
+    <h3 class="main-text" style="font-size: 4rem">Join Lobby</h3>
+    <div class="general-container">
+        <div class="players-container">
+            @if (_players?.Count > 0)
+            {
+                @foreach (var p in _players)
+                {
+                    <PlayerSlot Name="@p.DisplayName" AvatarUrl="@p.AvatarUrl" PlayerId="@p.PlayerId" OnKick="KickPlayer"/>
+                }
+            }
+            else
+            {
+                <p>No players yet...</p>
+            }
+        </div>
+
+        <div class="join-game-info-container">
+            <div class="lobby-info-item">
+                <span class="info-label">Owner:</span>
+                <span class="info-value">@_ownerName</span>
+            </div>
+            <div class="lobby-info-item">
+                <span class="info-label">Visibility:</span>
+                <span class="info-value">@(_isPrivate ? "Private" : "Public")</span>
+            </div>
+            <div class="lobby-info-item">
+                <span class="info-label">Players:</span>
+                <span class="info-value">@_players.Count / @_maxPlayers</span>
+            </div>
+        </div>
+    </div>
+
+    <button class="leave-btn" @onclick="LeaveLobby">
+        Leave Lobby
+    </button>
+</div>
+
+
+@code {
+    [Parameter] public Guid GameId { get; set; }
+
+    private bool _loading = true;
+    private bool _isPrivate;
+    private int _maxPlayers = 4;
+    private string _ownerName = "";
+    private List<PlayerPublicInfo> _players = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await ProfileService.CreateGuessUser(); // Ensure profile exists
+        await LoadGameInfo();                  // Initial state
+        await JoinGameViaSignalR();            // Join lobby live updates
+    }
+
+    private async Task LoadGameInfo()
+    {
+        try
+        {
+            var game = await Http.GetFromJsonAsync<GameInfoDto>($"api/game/info/{GameId}");
+            if (game == null)
+            {
+                Nav.NavigateTo("/");
+                return;
+            }
+
+            _isPrivate = !game.IsPublic;
+            _maxPlayers = game.MaxPlayers;
+            _players = game.Players;
+
+            // Owner name from list
+            var owner = game.Players.FirstOrDefault(p => p.PlayerId == game.OwnerPlayerId);
+            _ownerName = owner?.DisplayName ?? "Unknown";
+
+            _loading = false;
+        }
+        catch (HttpRequestException)
+        {
+            Console.WriteLine("❌ Failed to load lobby info");
+            Nav.NavigateTo("/");
+        }
+    }
+
+    private async Task JoinGameViaSignalR()
+    {
+        var myId = ProfileService.CurrentProfile!.PlayerId.ToString();
+        var myName = ProfileService.CurrentProfile!.DisplayName;
+
+        // ✅ Join via SignalR
+        await GameService.JoinGame(GameId, myId, myName);
+
+        // ✅ Subscribe to lobby updates
+        GameService.OnPlayerJoined += HandlePlayerJoined;
+        GameService.OnGameStateUpdated += HandleGameUpdated;
+        GameService.OnPlayerLeft += HandlePlayerLeft;
+        GameService.OnPlayerKicked += HandlePlayerKicked;     
+        GameService.OnYouWereKicked += HandleYouWereKicked;
+        GameService.OnGameStarted += HandleGameStarted;
+    }
+    
+    private void HandleGameStarted(Guid startedGameId)
+    {
+        if (startedGameId == GameId)
+        {
+            Console.WriteLine("🚀 Game started! Redirecting to game page...");
+            Nav.NavigateTo($"/game/{GameId}");
+        }
+    }
+
+    private void HandlePlayerJoined(string name, GamePublicState state)
+    {
+        Console.WriteLine($"✅ Player joined: {name}");
+        _players = state.Players.Select(p => new PlayerPublicInfo
+        {
+            PlayerId = p.PlayerId,
+            DisplayName = p.PlayerName,
+            AvatarUrl = null // no avatar for now
+        }).ToList();
+        StateHasChanged();
+    }
+
+    private async Task LeaveLobby()
+    {
+        var myId = ProfileService.CurrentProfile!.PlayerId.ToString();
+        await GameService.LeaveGame(GameId, myId);
+
+        Nav.NavigateTo("/"); // back to main menu
+    }
+    
+    private void HandlePlayerKicked(string kickedId, GamePublicState state)
+    {
+        Console.WriteLine($"❌ Player kicked: {kickedId}");
+        _players = state.Players.Select(p => new PlayerPublicInfo
+        {
+            PlayerId = p.PlayerId,
+            DisplayName = p.PlayerName
+        }).ToList();
+
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void HandleYouWereKicked(Guid gameId)
+    {
+        Console.WriteLine($"🚨 Redirecting because you were kicked from {gameId}");
+        Nav.NavigateTo("/"); // back to main menu
+    }
+    
+    private async Task KickPlayer(string targetPlayerId)
+    {
+        var myId = ProfileService.CurrentProfile!.PlayerId.ToString();
+        await GameService.KickPlayer(GameId, myId, targetPlayerId);
+    }
+    
+    private void HandlePlayerLeft(string name, GamePublicState state)
+    {
+        Console.WriteLine($"❌ Player left: {name}");
+        UpdatePlayers(state);
+
+        // ✅ Check if I became the new owner
+        var myId = ProfileService.CurrentProfile!.PlayerId.ToString();
+        if (state.OwnerPlayerId == myId)
+        {
+            Console.WriteLine("👑 I became the new owner, redirecting...");
+            Nav.NavigateTo($"/lobby/create/{GameId}");
+        }
+    }
+
+    private void HandleGameUpdated(GamePublicState state)
+    {
+        UpdatePlayers(state);
+
+        var myId = ProfileService.CurrentProfile!.PlayerId.ToString();
+        if (state.OwnerPlayerId == myId)
+        {
+            Console.WriteLine("👑 I became the new owner, redirecting...");
+            Nav.NavigateTo($"/lobby/create/{GameId}");
+        }
+    }
+
+    private void UpdatePlayers(GamePublicState state)
+    {
+        _players = state.Players.Select(p => new PlayerPublicInfo
+        {
+            PlayerId = p.PlayerId,
+            DisplayName = p.PlayerName
+        }).ToList();
+
+        InvokeAsync(StateHasChanged);
+    }
+
+}

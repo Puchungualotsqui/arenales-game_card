@@ -1,0 +1,90 @@
+@page "/game/{GameId:guid}"  
+
+@using GameCards.Client.Components.Card
+@using GameCards.Client.Extras
+@using GameCards.Shared
+@inject SignalRGameService GameService
+@inject UserProfileService ProfileService
+
+<div class="game-table">
+    @for (int i = 0; i < Players.Count; i++)
+    {
+        <div class="player-slot @GetPlayerPositionClass(i)">
+            <div class="player-info">
+                <span>@Players[i].PlayerName</span>
+            </div>
+
+            <CardDeck Cards="@Players[i].HandCards" ShowCardsFaceUp="@IsLocalPlayer(Players[i].PlayerId)" />
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public Guid GameId { get; set; }
+    [Parameter] public List<PlayerPublicView> Players { get; set; } = new();
+    
+    [Parameter] public string LocalPlayerId { get; set; } = "";
+
+    private bool IsLocalPlayer(string playerId) => playerId == LocalPlayerId;
+
+    private string GetPlayerPositionClass(int index)
+    {
+        int total = Players.Count;
+
+        return total switch
+        {
+            2 => (index == 0) ? "bottom" : "top",
+            3 => index switch
+            {
+                0 => "bottom",
+                1 => "top-left",
+                _ => "top-right"
+            },
+            4 => index switch
+            {
+                0 => "bottom",
+                1 => "left",
+                2 => "top",
+                _ => "right"
+            },
+            _ => "bottom" // fallback
+        };
+    }
+
+    private readonly List<CardStruct> _deck = [];
+    private string _playerId = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // ✅ get current logged player
+        _playerId = ProfileService.CurrentProfile!.PlayerId.ToString();
+
+        // ✅ placeholder deck
+        for (int i = 0; i < 7; i++)
+        {
+            _deck.Add(new CardStruct(
+                $"Card {i + 1}",
+                new List<CardType> { CardType.Action },
+                $"Does something {i + 1}",
+                i,
+                0,
+                "",
+                ""
+            ));
+        }
+
+        // ✅ listen to live updates
+        GameService.OnGameStateUpdated += HandleGameStateUpdated;
+
+        // ✅ join correct game
+        await GameService.JoinGame(GameId, _playerId, ProfileService.CurrentProfile.DisplayName);
+
+        Console.WriteLine($"🎮 Joined game {GameId} as {_playerId}");
+    }
+
+    private void HandleGameStateUpdated(GamePublicState state)
+    {
+        Console.WriteLine($"📡 Game updated: Turn = {state.CurrentTurnPhase}");
+        InvokeAsync(StateHasChanged);
+    }
+}

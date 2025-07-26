@@ -1,0 +1,32 @@
+@using GameCards.Client.Constants
+@using GameCards.Shared
+@inherits LayoutComponentBase
+
+
+<div class="card" style="@($"width: {LayoutConstants.CardWidthRem};")" @attributes="AdditionalAttributes">
+    @if (FaceUp)
+    {
+        <div class="card-container">
+            <h3>@CardInfo.Name</h3>
+            <p><strong>Type:</strong> Types here</p>
+            <p>@CardInfo.Description</p>
+            <div class="cost">💰 @CardInfo.Cost</div>
+        </div>
+    }
+    else
+    {
+        <div class="card-container">
+            <div class="border-image-container">
+                <img class="border-image" src="assets/Borders/BackCard1.png" alt="BackCard"/>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+    
+    [Parameter] public CardStruct? CardInfo { get; set; }
+    [Parameter] public bool FaceUp { get; set; } = false;
+}

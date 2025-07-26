@@ -1,0 +1,13 @@
+.deck {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.deck .card {
+    margin-left: -5rem; /* simulate negative gap */
+    transition: transform 0.2s ease, z-index 0.2s ease;
+    z-index: 1;
+}
+
+

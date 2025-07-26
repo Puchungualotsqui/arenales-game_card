@@ -1,0 +1,59 @@
+/* Reuse the same style base as the main menu */
+.login-menu-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+    padding: 2rem;
+}
+
+.login-menu-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    width: 100%;
+    max-width: 350px; /* narrower column for login */
+}
+
+.menu-btn {
+    background: rgba(0,0,0,0.6);
+    border: 2px solid white;
+    color: white;
+    font-size: 1.3rem;
+    padding: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    width: 100%;
+    text-align: center;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.menu-btn:hover {
+    background: white;
+    color: black;
+    transform: scale(1.05);
+}
+
+/* Small icon for Google/Email/Guest */
+.login-icon {
+    width: 24px;
+    height: 24px;
+}
+
+/* Responsive for small screens */
+@media (max-width: 480px) {
+    .menu-title {
+        font-size: 2rem;
+    }
+    .login-menu-buttons {
+        width: 80%;
+    }
+    .menu-btn {
+        font-size: 1.1rem;
+        padding: 0.8rem;
+    }
+}

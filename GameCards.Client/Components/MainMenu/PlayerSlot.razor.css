@@ -1,0 +1,36 @@
+.player-slot {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 0.5rem 1rem;
+    margin-bottom: 0.5rem;
+    border-radius: 6px;
+    font-size: 1rem;
+    color: white;
+}
+
+/* Player name */
+.player-name {
+    flex: 1;
+    text-align: left;
+    white-space: nowrap;        /* don’t wrap to next line */
+    overflow: hidden;           /* hide overflow */
+    text-overflow: ellipsis;    /* show … at the end */
+    max-width: calc(100% - 2rem); /* leave space for the kick button */
+}
+
+/* Kick button */
+.kick-btn {
+    background: none;
+    border: none;
+    color: #ff6666;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.kick-btn:hover {
+    color: red;
+}

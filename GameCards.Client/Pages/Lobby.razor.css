@@ -1,0 +1,146 @@
+/* Make the whole screen fill the viewport */
+.main-screen-container {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    align-items: center;   /* Vertical center */
+    justify-content: center; /* Horizontal center */
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+}
+
+/* Background image covers the screen */
+/* Fullscreen container for the background */
+.background-container {
+    position: fixed;   /* stays fixed behind everything */
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden; /* avoid scrollbars */
+    z-index: -1;      /* push it behind your content */
+}
+
+/* Make the image cover the whole screen */
+.background-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* ensures it fills and keeps aspect ratio */
+}
+
+
+/* Lobby panel in the middle */
+.lobby-container {
+    padding: 2rem;
+    text-align: center;
+}
+
+/* Titles */
+.logo-container {
+    height: 15rem;
+    width: 70rem;
+}
+
+.arenales-logo {
+    width: 100%;
+    height: 100%;
+}
+
+.options-container {
+    background-color: RGBA(0,0,0,0.9);
+    width: 100%;
+    height: 100%;
+    padding: 1.5rem;
+}
+
+/* USER SLOT - fixed in top-right */
+.user-slot {
+    position: absolute;  /* Relative to main-screen-container */
+    top: 1rem;
+    right: 1.5rem;
+
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;  /* Space between avatar and name */
+
+    background: rgba(0, 0, 0, 0.6);
+    padding: 0.6rem 1rem;
+    border-radius: 0.8rem;
+
+    color: white;
+    font-size: 1rem;
+    font-weight: bold;
+    width: 20rem;
+    flex-direction: column;
+}
+
+/* Avatar styling */
+.user-avatar {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;   /* Makes it circular */
+    border: 2px solid white;
+    object-fit: cover;    /* Keeps aspect ratio */
+    margin-right: 1rem;
+}
+
+/* Username styling */
+.user-name {
+    flex: 1;                  /* take remaining space */
+    overflow: hidden;         /* hide anything that overflows */
+    text-overflow: ellipsis;  /* show ... when text is cut */
+    white-space: nowrap;      /* keep it on one line */
+    display: block;           /* ensure it applies correctly */
+    max-width: 15rem;          /* respect container width */
+}
+
+
+
+
+.log-out-wrapper {
+    top: 3.5rem; /* below the user-slot */
+    right: 1.5rem;
+    background: rgba(0,0,0,0.9);
+    color: white;
+    padding: 1rem;
+    border-radius: 0.6rem;
+    min-width: 200px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    z-index: 1001;
+    width: 100%;
+}
+
+.profile-info {
+    margin: 0 0 0.8rem;
+    font-size: 0.95rem;
+}
+
+.profile-btn {
+    display: block;
+    width: 100%;
+    padding: 0.6rem;
+    background: rgba(255,255,255,0.1);
+    border: none;
+    color: white;
+    text-align: center;
+    font-size: 0.95rem;
+    border-radius: 0.4rem;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.profile-btn:hover {
+    background: rgba(255,255,255,0.2);
+}
+
+.profile-btn.logout {
+    color: #ff4d4d;
+}
+
+.main-info-wrapper {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}

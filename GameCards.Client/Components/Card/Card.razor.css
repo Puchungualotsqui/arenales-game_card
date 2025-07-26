@@ -1,0 +1,30 @@
+.card {
+    width: 9.5rem;
+    height: 15rem;
+    border: 0.1rem solid #444;
+    border-radius: 8px;
+    box-shadow: 0.5rem 0.5rem 0.75rem rgba(0,0,0,0.3);
+    overflow: hidden;
+    background: white;
+    margin-right: -1rem;
+
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.deck .card:hover {
+    transform: translateY(-1rem) scale(1.05);
+    box-shadow: 0.75rem 1rem 1.25rem rgba(0, 0, 0, 0.4);
+    z-index: 999;
+}
+
+.card-container {
+    display: flex;
+    height: 100%;
+    width: 100%;
+}
+
+.border-image-container {
+    display: flex;
+    height: 100%;
+    width: 100%;
+}

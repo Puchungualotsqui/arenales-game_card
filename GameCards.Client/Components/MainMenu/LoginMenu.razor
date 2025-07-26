@@ -1,0 +1,75 @@
+@page "/login"
+@using GameCards.Client.Extras
+@using GameCards.Client.Pages
+@layout Lobby
+@inject UserProfileService ProfileService
+@inject NavigationManager Nav
+
+
+<div class="login-menu-container">
+    <h2 class="menu-title">Login</h2>
+
+    <div class="login-menu-buttons">
+        <button class="menu-btn" @onclick="LoginWithGoogle">
+            <img src="assets/Icons/google-icon.svg" alt="Google" class="login-icon" />
+            Login with Google
+        </button>
+
+        <button class="menu-btn" @onclick="ContinueAsGuest">
+            Continue as Guest
+        </button>
+    </div>
+</div>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        // Try to load existing profile
+        var hasProfile = await ProfileService.TryLoadProfileAsync();
+
+        if (hasProfile && !string.IsNullOrEmpty(ProfileService.CurrentProfile?.Email))
+        {
+            Nav.NavigateTo("/", forceLoad: true);
+        }
+    }
+    
+    private async Task LoginWithGoogle()
+    {
+        // Ensure we have a guest profile (creates it if missing)
+        await ProfileService.CreateGuessUser();
+
+        // Now we have a valid PlayerId
+        var pid = ProfileService.CurrentProfile?.PlayerId ?? Guid.Empty;
+        
+        // Redirect to Google OAuth
+        Nav.NavigateTo($"http://localhost:5026/api/auth/google-login?playerId={pid}", forceLoad: true);
+    }
+
+    private async Task ContinueAsGuest()
+    {
+        // Create or load guest profile
+        await ProfileService.CreateGuessUser();
+
+        // After guest profile is created, go to main menu
+        await AfterLoginSuccessAsync();
+    }
+    
+    private async Task AfterLoginSuccessAsync()
+    {
+        // ✅ Check if there was a pending redirect
+        var pendingUrl = await ProfileService.GetPendingRedirectAsync();
+
+        if (!string.IsNullOrEmpty(pendingUrl))
+        {
+            // ✅ Clear so it doesn’t keep looping
+            await ProfileService.ClearPendingRedirectAsync();
+
+            Nav.NavigateTo(pendingUrl, forceLoad: true);
+        }
+        else
+        {
+            // ✅ No pending → go to main menu
+            Nav.NavigateTo("/", forceLoad: true);
+        }
+    }
+}
